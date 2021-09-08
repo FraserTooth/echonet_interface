@@ -29,3 +29,10 @@ pip install -r requirements.txt
 
 python get_power.py
 ```
+
+## Echonet/B-Route Information
+
+### Echonet Specs in English:
+- Echonet Lite Spec: [https://echonet.jp/spec_v113_lite_en/](https://echonet.jp/spec_v113_lite_en/)
+  - Specifically the [Middleware Specifications](https://echonet.jp/wp/wp-content/uploads/pdf/General/Standard/ECHONET_lite_V1_13_en/ECHONET-Lite_Ver.1.13(02)_E.pdf)
+  - Also the current [Appendix](https://echonet.jp/spec_object_rn_en/) is very useful, search for the "Requirements for low -voltage smart electric energy meter class" section
