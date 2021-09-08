@@ -133,12 +133,9 @@ while True :
 
     #いつもは即時値取得
     if not DAILY_TASK :
-        command = "SKSENDTO 1 {0} 0E1A 1 {1:04X} ".format(ipv6Addr, len(GET_NOW_POWER_B))
+        command = "SKSENDTO 1 {0} 0E1A 1 {1:04X} ".format(ipv6Addr, len(GET_INSTANTANEOUS_POWER))
         # コマンド送信
-        ser.write(str2byte(command) + GET_NOW_POWER_B)
-        d = datetime.datetime.today()
-        if today != d.strftime("%d") :
-            DAILY_TASK = True
+        ser.write(str2byte(command) + GET_INSTANTANEOUS_POWER)
     #初回起動時または、日付が変更されたら前日の30分値を取得
     if DAILY_TASK :
         if task_cnt == 0 :
@@ -157,12 +154,13 @@ while True :
         #    # コマンド送信
         #    ser.write(str2byte(command) + GET_MF_B)
 
-    logger.info(byte2str(ser.readline()))
-    logger.info(byte2str(ser.readline()))
-    logger.info(byte2str(ser.readline()))
+    # Read in 3 unused lines
+    ser.readline()
+    ser.readline()
+    ser.readline()
 
+    # The main line we care about
     line = byte2str(ser.readline())         # ERXUDPが来るはず
-    logger.info(line)
 
     # 受信データはたまに違うデータが来たり、
     # 取りこぼしたりして変なデータを拾うことがあるので
@@ -175,8 +173,8 @@ while True :
         #deoj = res[14,14+6]
         ESV = res[20:20+2]
         #OPC = res[22,22+2]
-        logger.debug("EPC:" + seoj)
-        logger.debug("ESV:" + ESV)
+        # logger.debug("EPC:" + seoj)
+        # logger.debug("ESV:" + ESV)
         #エラー処理ここに入ったら落ちる
         if seoj != "028801" :
             logger.error("seoj:" + seoj )
@@ -186,19 +184,17 @@ while True :
         if seoj == "028801" and ESV == "72" :
             # スマートメーター(028801)から来た応答(72)なら
             EPC = res[24:24+2]
-            logger.debug("EPC:" + EPC)
+            # logger.debug("EPC:" + EPC)
             if EPC == "E7" :
                 # 内容が瞬時電力計測値(E7)だったら
-                logger.info("PARTH E7")
-                parthE7(line)
+                parseE7(line)
             if EPC == "E2" :
                 # 内容が電力計測値(E2)だったら
-                logger.info("PARTH E2")
                 d = datetime.datetime.today()
                 today = d.strftime("%d")
                 d -= datetime.timedelta(days = 1)
                 logger.info(today)
-                parthE2(res,d.strftime("%Y%m%d"))
+                parseE2(res,d.strftime("%Y%m%d"))
                 DAILY_TASK = False
                 #task_cnt += 1
             #if EPC == "D7" :
