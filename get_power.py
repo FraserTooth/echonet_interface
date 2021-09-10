@@ -1,13 +1,12 @@
-import config
-import echonet
-from common import *
-import b_route
+import src.config as config
+import src.echonet as echonet
+from src.common import *
+import src.b_route as b_route
 
 import sys
 import serial
 import time
 import logging.handlers
-import datetime
 import atexit
 
 # ロガー取得
@@ -50,7 +49,6 @@ while True:
         )
         + echonet_command
     )
-    logger.debug("SENDING")
 
     # コマンド送信
     ser.write(command)
@@ -59,9 +57,6 @@ while True:
     # Find the line we care about
     while line.startswith("ERXUDP") is False:
         line = byte2str(ser.readline())
-        logger.debug(line)
-
-    logger.debug("FOUND LINE")
 
     # Split into sections
     cols = line.strip().split(" ")
@@ -76,7 +71,6 @@ while True:
     ESV = echonet_result[20 : 20 + 2]
     # Number of responses
     OPC = echonet_result[22 : 22 + 2]
-    logger.debug(f"ESV: {ESV}, OPC: {OPC}")
 
     if SEOJ != "028801":
         logger.error("Response not from meter")
@@ -85,7 +79,7 @@ while True:
         sys.exit()
 
     if SEOJ == "028801" and ESV == "72":
-        data = {}
+        raw_data = {}
         num_responses = int(OPC, 16)
         # Start the response reader at the 24th hex character
         reader_point = 24
@@ -100,20 +94,11 @@ while True:
             data_chars = int(hex2int(PDC) * 2)
             # Get data string
             data_hex = echonet_result[reader_point : reader_point + data_chars]
-            data[EPC] = data_hex
+            raw_data[EPC] = data_hex
             reader_point += data_chars  # Move reading point along to end of Data
 
-        logger.debug(data)
+        parsed_data = echonet.parse(raw_data)
 
-        if "E7" in data:
-            echonet.parse_E7(data["E7"])
-        if "E2" in data:
-            # 内容が電力計測値(E2)だったら
-            d = datetime.datetime.today()
-            today = d.strftime("%d")
-            d -= datetime.timedelta(days=1)
-            logger.info(today)
-            echonet.parseE2(echonet_result, d.strftime("%Y%m%d"))
-            DAILY_TASK = False
-        time.sleep(1)
+        logger.info(parsed_data)
+    time.sleep(10)
 ser.close()
