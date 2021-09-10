@@ -1,5 +1,5 @@
-from echonet import *
-from config import *
+import config
+import echonet
 from common import *
 import b_route
 
@@ -11,13 +11,18 @@ import datetime
 import atexit
 
 # ロガー取得
-logger = logging.getLogger('main')
+logger = logging.getLogger("main")
 
 fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
 logging.basicConfig(level=10, format=fmt)
 
 # シリアルポート初期化
-ser = serial.Serial(serialPortDev, baudrate=115200)
+try:
+    ser = serial.Serial(config.serialPortDev, baudrate=115200)
+except Exception as e:
+    raise ValueError(
+        f"Error opening the serial port, your serialPortDev config ({config.serialPortDev}) is probably wrong.\n{e}"
+    )
 
 ser.reset_input_buffer()
 
@@ -41,16 +46,30 @@ while True:
 
     # いつもは即時値取得
     if not DAILY_TASK:
-        command = "SKSENDTO 1 {0} 0E1A 1 {1:04X} ".format(ipv6_address, len(GET_INSTANTANEOUS_POWER))
+        echonet_command = echonet.get_smart_meter_command(
+            [echonet.SmartMeterActions.NOW_POWER]
+        )
+
+        command = (
+            str2byte(
+                "SKSENDTO 1 {0} 0E1A 1 {1:04X} ".format(
+                    ipv6_address, len(echonet_command)
+                )
+            )
+            + echonet_command
+        )
+
         # コマンド送信
-        ser.write(str2byte(command) + GET_INSTANTANEOUS_POWER)
+        ser.write(command)
     # 初回起動時または、日付が変更されたら前日の30分値を取得
     if DAILY_TASK:
         if task_cnt == 0:
             logger.debug("task_cnt 0")
-            command = "SKSENDTO 1 {0} 0E1A 1 {1:04X} ".format(ipv6_address, len(GET_EACH30_B))
+            command = "SKSENDTO 1 {0} 0E1A 1 {1:04X} ".format(
+                ipv6_address, len(echonet.GET_EACH30_B)
+            )
             # コマンド送信
-            ser.write(str2byte(command) + GET_EACH30_B)
+            ser.write(str2byte(command) + echonet.GET_EACH30_B)
         # if task_cnt == 1 :
         #    logger.debug("task_cnt 1")
         #    command = "SKSENDTO 1 {0} 0E1A 1 {1:04X} ".format(ipv6_address, len(GET_STATUS_B))
@@ -63,23 +82,24 @@ while True:
         #    ser.write(str2byte(command) + GET_MF_B)
 
     # Read in 3 unused lines
-    ser.readline()
-    ser.readline()
-    ser.readline()
+    logger.debug(ser.readline())
+    logger.debug(ser.readline())
+    logger.debug(ser.readline())
 
     # The main line we care about
     line = byte2str(ser.readline())  # ERXUDPが来るはず
+    logger.debug(line)
 
     # 受信データはたまに違うデータが来たり、
     # 取りこぼしたりして変なデータを拾うことがあるので
     # チェックを厳しめにしてます。
     if line.startswith("ERXUDP"):
-        cols = line.strip().split(' ')
+        cols = line.strip().split(" ")
         res = cols[8]  # UDP受信データ部分
         # tid = res[4:4+4];
-        seoj = res[8:8 + 6]
+        seoj = res[8 : 8 + 6]
         # deoj = res[14,14+6]
-        ESV = res[20:20 + 2]
+        ESV = res[20 : 20 + 2]
         # OPC = res[22,22+2]
         # logger.debug("EPC:" + seoj)
         # logger.debug("ESV:" + ESV)
@@ -91,18 +111,18 @@ while True:
 
         if seoj == "028801" and ESV == "72":
             # スマートメーター(028801)から来た応答(72)なら
-            EPC = res[24:24 + 2]
+            EPC = res[24 : 24 + 2]
             # logger.debug("EPC:" + EPC)
             if EPC == "E7":
                 # 内容が瞬時電力計測値(E7)だったら
-                parseE7(line)
+                echonet.parseE7(line)
             if EPC == "E2":
                 # 内容が電力計測値(E2)だったら
                 d = datetime.datetime.today()
                 today = d.strftime("%d")
                 d -= datetime.timedelta(days=1)
                 logger.info(today)
-                parseE2(res, d.strftime("%Y%m%d"))
+                echonet.parseE2(res, d.strftime("%Y%m%d"))
                 DAILY_TASK = False
                 # task_cnt += 1
             # if EPC == "D7" :

@@ -5,7 +5,7 @@ import sys
 
 from common import str2byte, byte2str
 
-logger = logging.getLogger('b-route')
+logger = logging.getLogger("b-route")
 
 fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
 logging.basicConfig(level=10, format=fmt)
@@ -52,7 +52,7 @@ def connect_to_broute(ser: serial.Serial) -> str:
                 #  Addr:FFFFFFFFFFFFFFFF
                 #  LQI:A7
                 #  PairID:FFFFFFFF
-                cols = lineStr.strip().split(':')
+                cols = lineStr.strip().split(":")
                 scan_results[cols[0]] = cols[1]
         scanDuration += 1
 
@@ -98,4 +98,5 @@ def connect_to_broute(ser: serial.Serial) -> str:
         elif line.startswith("EVENT 25"):
             # 接続完了！
             bConnected = True
+    logger.info("CONNECTED")
     return ipv6_address
