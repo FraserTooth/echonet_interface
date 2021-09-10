@@ -158,16 +158,12 @@ def get_smart_meter_command(actions: List[SmartMeterActions]) -> bytes:
 # ロガー取得
 logger = logging.getLogger("echonet")
 
-# 瞬時電力量ファイル作成処理、表示用処理
-def parseE7(line):
-    # 内容が瞬時電力計測値(E7)だったら
-    hexPower = line[-8:]  # 最後の4バイト（16進数で8文字）が瞬時電力計測値
-    power = str(int(hexPower, 16))
+
+def parse_E7(hex_data: str):
+    power = str(int(hex_data, 16))
     d = datetime.datetime.now()
-    filename = WRITE_PATH + POWER_FILE_NAME
     body = "Instantaneous Power: " + power + "[W]"
     body = body + "(" + d.strftime("%H:%M:%S") + ")"
-    # writeFile(filename, body)
     logger.info(body)
 
 

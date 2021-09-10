@@ -28,3 +28,7 @@ def byte2str(byte: bytes) -> str:
 
 def int2byte(num: int) -> bytes:
     return bytes.fromhex(f"{num:02x}")
+
+
+def hex2int(hex: str) -> int:
+    return int(hex, 16)
