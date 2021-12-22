@@ -4,11 +4,11 @@ Python Script to interface with a Japanese Smart Meter's Echonet protocol via a 
 Based off of the work in [this blog](https://qiita.com/puma_46/items/9dfc27323674641ed5b4)
 
 ## How to Run
-First, add a file in called `config.py` to your `src` folder, containing the following:
+First, add a file to your `src` folder: `src/config.py`, containing the following:
 ```python
 serialPortDev = '/dev/cu.usbserial-DM03SAK8'    # For MAC
-# For windows try 'COM3'
-# For Linux try '/dev/ttyUSB0'
+# For windows try serialPortDev = 'COM3'
+# For Linux try serialPortDev = '/dev/ttyUSB0'
 
 # Your B-Route ID
 rbid  = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
