@@ -1,13 +1,10 @@
-import src.config as config
 import src.echonet as echonet
-from src.common import *
+from src.common import byte2str, str2byte, hex2int
 import src.b_route as b_route
-
+from src.serial_connection import connect_to_serial_port
 import sys
-import serial
 import time
 import logging.handlers
-import atexit
 
 # ロガー取得
 logger = logging.getLogger("main")
@@ -15,24 +12,8 @@ logger = logging.getLogger("main")
 fmt = "%(asctime)s %(levelname)s %(name)s :%(message)s"
 logging.basicConfig(level=10, format=fmt)
 
-# シリアルポート初期化
-try:
-    ser = serial.Serial(config.serialPortDev, baudrate=115200)
-except Exception as e:
-    raise ValueError(
-        f"Error opening the serial port, your serialPortDev config ({config.serialPortDev}) is probably wrong.\n{e}"
-    )
-
-ser.reset_input_buffer()
-
-if ser.out_waiting > 0:
-    ser.reset_output_buffer()
-atexit.register(all_clear, ser)
-
+ser = connect_to_serial_port()
 ipv6_address = b_route.connect_to_broute(ser)
-
-# シリアル通信のタイムアウトを設定
-ser.timeout = 20
 
 # スマートメーターがインスタンスリスト通知を投げてくる
 # (ECHONET-Lite_Ver.1.12_02.pdf p.4-16)
@@ -101,4 +82,3 @@ while True:
 
         logger.info(parsed_data)
     time.sleep(10)
-ser.close()
