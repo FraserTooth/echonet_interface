@@ -1,7 +1,8 @@
 from enum import Enum
 from typing import List, Dict
 
-from . import config, actions, common
+import serial
+from . import config, actions, common, serial_connection
 import logging
 
 
@@ -68,7 +69,7 @@ def _get_action_subcommands(actions: List[SmartMeterActions]) -> bytes:
     return subcommand
 
 
-def get_smart_meter_command(actions_list: List[SmartMeterActions]) -> bytes:
+def _get_smart_meter_command(actions_list: List[SmartMeterActions]) -> bytes:
     return (
         actions.REQUEST_FROM_SMART_METER
         + _get_OPC(actions_list)
@@ -76,8 +77,64 @@ def get_smart_meter_command(actions_list: List[SmartMeterActions]) -> bytes:
     )
 
 
+def get_serial_command(
+    actions_list: List[SmartMeterActions], ipv6_address: str
+) -> bytes:
+    echonet_command = _get_smart_meter_command(actions_list)
+    return (
+        common.str2byte(
+            "SKSENDTO 1 {0} 0E1A 1 {1:04X} ".format(ipv6_address, len(echonet_command))
+        )
+        + echonet_command
+    )
+
+
 # ロガー取得
 logger = logging.getLogger("echonet")
+
+
+def handle_line(ser: serial.Serial, line: str):
+    # Split into sections
+    cols = line.strip().split(" ")
+    # Echonet should be the last bit
+    echonet_result = cols[-1]
+    transaction_id = echonet_result[4 : 4 + 4]
+    # Should be the meter 028801
+    SEOJ = echonet_result[8 : 8 + 6]
+    # Should be us 05FF01
+    DEOJ = echonet_result[14 : 14 + 6]
+    # Should be 72 for response
+    ESV = echonet_result[20 : 20 + 2]
+    # Number of responses
+    OPC = echonet_result[22 : 22 + 2]
+
+    if SEOJ != "028801":
+        logger.error("Response not from meter")
+        logger.error("SEOJ:" + SEOJ)
+        serial_connection.close_serial_connection(ser)
+
+    if SEOJ == "028801" and ESV == "72":
+        raw_data = {}
+        num_responses = int(OPC, 16)
+        # Start the response reader at the 24th hex character
+        reader_point = 24
+        for i in range(num_responses):
+            # Get Response Type - EPC
+            EPC = echonet_result[reader_point : reader_point + 2]
+            reader_point += 2  # Move reading point along to PDC
+            # Get Data Size in bytes - PDC
+            PDC = echonet_result[reader_point : reader_point + 2]
+            reader_point += 2  # Move reading point along to Data
+            # Get number of characters needed for data (2 for each byte)
+            data_chars = int(common.hex2int(PDC) * 2)
+            # Get data string
+            data_hex = echonet_result[reader_point : reader_point + data_chars]
+            raw_data[EPC] = data_hex
+            reader_point += data_chars  # Move reading point along to end of Data
+
+        parsed_data = parse(raw_data)
+
+        logger.info(parsed_data)
 
 
 def parse(raw_data: Dict[str, str]) -> Dict[SmartMeterActions, str]:

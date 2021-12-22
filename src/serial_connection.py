@@ -1,8 +1,8 @@
 import src.config as config
 
-import serial
 import atexit
-
+import serial
+import sys
 from src.common import all_clear
 
 
@@ -25,3 +25,8 @@ def connect_to_serial_port() -> serial.Serial:
     ser.timeout = 20
 
     return ser
+
+
+def close_serial_connection(ser: serial.Serial):
+    ser.close()
+    sys.exit()
