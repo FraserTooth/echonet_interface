@@ -30,6 +30,11 @@ while True:
     # Find the line we care about
     while line.startswith("ERXUDP") is False:
         line = byte2str(ser.readline())
+        if len(line) == 0:
+            # Serial Connection has Hung
+            print("Looks like we've hung...")
+            break
 
-    echonet.handle_line(ser, line)
-    time.sleep(10)
+    if len(line) > 0:
+        echonet.handle_line(ser, line)
+    time.sleep(3)
