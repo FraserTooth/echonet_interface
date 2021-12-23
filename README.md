@@ -15,12 +15,10 @@ rbid  = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 # Your B-Route Password
 rbpwd = "XXXXXXXXXXXX"
 
-# Name of the Log file for your power readings
-POWER_FILE_NAME = "power.log"
-# Name of the log file for your daily readings
-EACH30_FILE_NAME = "each30.log"
-# The folder for your logs
-WRITE_PATH="data/"
+# DB information for Influx
+INFLUX_TOKEN = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+INFLUX_ORG = "example@example.com"
+INFLUX_BUCKET = "User's Bucket"
 ```
 
 Now Run:

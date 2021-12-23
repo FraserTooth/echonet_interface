@@ -4,6 +4,7 @@ import src.b_route as b_route
 from src.serial_connection import connect_to_serial_port
 import time
 import logging.handlers
+import src.influx as db
 
 # ロガー取得
 logger = logging.getLogger("main")
@@ -36,5 +37,6 @@ while True:
             break
 
     if len(line) > 0:
-        echonet.handle_line(ser, line)
+        data = echonet.handle_line(ser, line)
+        db.write_to_influx(data)
     time.sleep(3)
