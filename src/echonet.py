@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 import serial
 from . import config, actions, common, serial_connection
@@ -93,7 +93,9 @@ def get_serial_command(
 logger = logging.getLogger("echonet")
 
 
-def handle_line(ser: serial.Serial, line: str) -> dict[SmartMeterActions, str]:
+def handle_line(
+    ser: serial.Serial, line: str
+) -> Optional[dict[SmartMeterActions, str]]:
     # Split into sections
     cols = line.strip().split(" ")
     # Echonet should be the last bit
@@ -136,6 +138,8 @@ def handle_line(ser: serial.Serial, line: str) -> dict[SmartMeterActions, str]:
 
         logger.info(parsed_data)
         return parsed_data
+    else:
+        return None
 
 
 def parse(raw_data: Dict[str, str]) -> Dict[SmartMeterActions, str]:

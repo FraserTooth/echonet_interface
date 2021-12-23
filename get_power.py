@@ -38,5 +38,6 @@ while True:
 
     if len(line) > 0:
         data = echonet.handle_line(ser, line)
-        db.write_to_influx(data)
+        if data is not None:
+            db.write_to_influx(data)
     time.sleep(3)
