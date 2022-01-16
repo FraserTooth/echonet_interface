@@ -28,6 +28,9 @@ pip install -r requirements.txt
 python get_power.py
 ```
 
+## How to Install and Run the WebApp
+TODO 
+
 ## Echonet/B-Route Information
 
 ### Echonet Specs in English:
