@@ -22,12 +22,12 @@ const fluxQuery = `from(bucket: "${bucket}")
   |> filter(fn: (r) => r["_field"] == "now_power")`;
 
 interface DataPoint {
-  time: any;
-  value: any;
+  time: Date;
+  value: number;
 }
 
 const Home: NextPage = () => {
-  const [data, setData] = useState([]);
+  const [data, setData] = useState<DataPoint[]>([]);
   const [isLoading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -38,21 +38,20 @@ const Home: NextPage = () => {
         headers,
       });
       const dataRaw = await res.text();
-      console.log(dataRaw);
-      const data = await parse(dataRaw, {
+      const data: DataPoint[] = await parse(dataRaw, {
         columns: true,
         skip_empty_lines: true,
       }).map((point: any) => {
         return { time: new Date(point._time), value: parseInt(point._value) };
       });
 
-      console.log("Read Response");
-      console.log(data);
       setData(data);
       setLoading(false);
     };
 
-    fetchData().catch(console.error);
+    const id = setInterval(() => fetchData().catch(console.error), 10 * 1000);
+
+    return () => clearInterval(id);
   }, []);
 
   const mostRecentPoint = data[data.length - 1];
