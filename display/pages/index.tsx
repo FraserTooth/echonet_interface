@@ -60,8 +60,11 @@ const Home: NextPage = () => {
       setLoading(false);
     };
 
-    const id = setInterval(() => fetchData().catch(console.error), 10 * 1000);
+    // Run initially
+    fetchData().catch(console.error);
 
+    // Setup 10 second polling
+    const id = setInterval(() => fetchData().catch(console.error), 10 * 1000);
     return () => clearInterval(id);
   }, []);
 

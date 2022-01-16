@@ -1,9 +1,9 @@
-import src.config as config
+import meter.config as config
 
 import atexit
 import serial
 import sys
-from src.common import all_clear
+from meter.common import all_clear
 
 
 def connect_to_serial_port() -> serial.Serial:
