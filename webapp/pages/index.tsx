@@ -21,6 +21,17 @@ const fluxQuery = `from(bucket: "${bucket}")
   |> filter(fn: (r) => r["_measurement"] == "power")
   |> filter(fn: (r) => r["_field"] == "now_power")`;
 
+const solarAvailabilityColor = (reading: number): string => {
+  if (reading > 0) {
+    const maxColorReading = 3000;
+    // Calculate the Hue from 0-60 mapped from 0 to 3000
+    const hueCalc = 60 - Math.floor((reading / maxColorReading) * 60);
+    const hue = hueCalc > 0 ? hueCalc : 0;
+    return `hsl(${hue},100%,50%)`;
+  }
+  return `hsl(130,100%,50%)`;
+};
+
 interface DataPoint {
   time: Date;
   value: number;
@@ -55,16 +66,21 @@ const Home: NextPage = () => {
   }, []);
 
   const mostRecentPoint = data[data.length - 1];
+  const color = solarAvailabilityColor(
+    mostRecentPoint ? mostRecentPoint.value : 0
+  );
 
   return (
-    <div className={styles.container}>
+    <div className={styles.container} style={{ backgroundColor: color }}>
       <main className={styles.main}>
         {isLoading ? (
-          <div>Loading...</div>
+          <div className={styles.description}>Loading...</div>
         ) : (
           <div>
             <h1 className={styles.title}>{mostRecentPoint.value} kW</h1>
-            <p>{mostRecentPoint.time.toString()}</p>
+            <p className={styles.description}>
+              Last Updated: {mostRecentPoint.time.toLocaleTimeString("en-GB")}
+            </p>
           </div>
         )}
       </main>
