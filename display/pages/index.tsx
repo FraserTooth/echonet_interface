@@ -8,7 +8,7 @@ const url = process.env.NEXT_PUBLIC_INFLUX_URL || "";
 const token = process.env.NEXT_PUBLIC_INFLUX_TOKEN;
 const org = process.env.NEXT_PUBLIC_INFLUX_ORG || "";
 const bucket = process.env.NEXT_PUBLIC_INFLUX_BUCKET || "";
-const fetchURL = `${url}api/v2/query?org=${org}`;
+const fetchURL = `${url}/api/v2/query?org=${org}`;
 
 const headers = [
   ["Content-Type", "application/vnd.flux"],
