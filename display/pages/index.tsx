@@ -80,7 +80,7 @@ const Home: NextPage = () => {
           <div className={styles.description}>Loading...</div>
         ) : (
           <div>
-            <h1 className={styles.title}>{mostRecentPoint.value} kW</h1>
+            <h1 className={styles.title}>{mostRecentPoint.value} W</h1>
             <p className={styles.description}>
               Last Updated: {mostRecentPoint.time.toLocaleTimeString("en-GB")}
             </p>
