@@ -1,5 +1,5 @@
 import {LineChart, XAxis, YAxis, CartesianGrid, Line} from "recharts"
-import {DataPoint} from "./types";
+import {DataPoint} from "../types/types";
 
 interface ChartProps {
     data: DataPoint[]

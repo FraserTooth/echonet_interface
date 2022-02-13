@@ -3,7 +3,7 @@ import {useState, useEffect, Dispatch, SetStateAction} from "react";
 import styles from "../styles/Home.module.css";
 import { parse } from "csv-parse/sync";
 import Chart from "./chart"
-import {DataPoint} from "./types";
+import {DataPoint} from "../types/types";
 
 /** Environment variables **/
 const url = process.env.NEXT_PUBLIC_INFLUX_URL || "";
