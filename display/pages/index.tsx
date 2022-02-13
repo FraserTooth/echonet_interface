@@ -1,7 +1,9 @@
 import type { NextPage } from "next";
-import { useState, useEffect } from "react";
+import {useState, useEffect, Dispatch, SetStateAction} from "react";
 import styles from "../styles/Home.module.css";
 import { parse } from "csv-parse/sync";
+import Chart from "./chart"
+import {DataPoint} from "./types";
 
 /** Environment variables **/
 const url = process.env.NEXT_PUBLIC_INFLUX_URL || "";
@@ -32,14 +34,31 @@ const solarAvailabilityColor = (reading: number): string => {
   return `hsl(130,100%,50%)`;
 };
 
-interface DataPoint {
-  time: Date;
-  value: number;
+
+/**
+ * Flips between showing graph and flips back after 10 seconds or if clicked again
+ * @param setShowGraph
+ * @param graphFlipTimer
+ * @param setGraphFlipTimer
+ */
+const flipGraph = (setShowGraph:  Dispatch<SetStateAction<boolean>>, graphFlipTimer: any, setGraphFlipTimer: Dispatch<SetStateAction<any>>) => {
+  if(graphFlipTimer){
+    clearTimeout(graphFlipTimer)
+    setGraphFlipTimer(undefined)
+    setShowGraph(false)
+  } else {
+    setShowGraph(true)
+    const timer = setTimeout(()=>{setShowGraph(false)}, 10000)
+    setGraphFlipTimer(timer)
+  }
 }
+
 
 const Home: NextPage = () => {
   const [data, setData] = useState<DataPoint[]>([]);
   const [isLoading, setLoading] = useState(true);
+  const [showGraph, setShowGraph] = useState(false);
+  const [graphFlipTimer, setGraphFlipTimer] = useState<any>(undefined)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -75,18 +94,23 @@ const Home: NextPage = () => {
 
   return (
     <div className={styles.container} style={{ backgroundColor: color }}>
-      <main className={styles.main}>
+      <main className={styles.main} onClick={()=>flipGraph(setShowGraph, graphFlipTimer, setGraphFlipTimer)}>
         {isLoading ? (
           <div className={styles.description}>Loading...</div>
         ) : (
-          <div>
-            <h1 className={styles.title}>{mostRecentPoint.value} W</h1>
-            <p className={styles.description}>
-              Last Updated: {mostRecentPoint.time.toLocaleTimeString("en-GB")}
-            </p>
-          </div>
+          showGraph ? (
+              <Chart data={data}/>
+            ) : (
+              <div>
+                <h1 className={styles.title}>{mostRecentPoint.value} W</h1>
+                <p className={styles.description}>
+                  Last Updated: {mostRecentPoint.time.toLocaleTimeString("en-GB")}
+                </p>
+              </div>
+          )
         )}
       </main>
+
     </div>
   );
 };
