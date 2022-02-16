@@ -75,8 +75,10 @@ const Home: NextPage = () => {
         return { time: new Date(point._time), value: parseInt(point._value) };
       });
 
-      setData(data);
-      setLoading(false);
+      if(data.length > 0){
+        setData(data);
+        setLoading(false);
+      }
     };
 
     // Run initially
