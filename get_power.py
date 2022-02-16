@@ -37,7 +37,13 @@ while True:
             break
 
     if len(line) > 0:
-        data = echonet.handle_line(ser, line)
-        if data is not None:
-            db.write_to_influx(data)
+        try:
+            data = echonet.handle_line(ser, line)
+            if data is not None:
+                db.write_to_influx(data)
+        except ValueError:
+            # Reconnect
+            ser = connect_to_serial_port()
+            ipv6_address = b_route.connect_to_broute(ser)
+
     time.sleep(3)

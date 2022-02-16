@@ -114,6 +114,7 @@ def handle_line(
         logger.error("Response not from meter")
         logger.error("SEOJ:" + SEOJ)
         serial_connection.close_serial_connection(ser)
+        raise ValueError("Response not from meter, closed connection...")
 
     if SEOJ == "028801" and ESV == "72":
         raw_data = {}

@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from urllib3.exceptions import ReadTimeoutError
+from urllib3.exceptions import ReadTimeoutError, ConnectTimeoutError
 
 from . import echonet, config
 from influxdb_client import InfluxDBClient, Point, WritePrecision
@@ -23,7 +23,8 @@ def write_to_influx(data: dict[echonet.SmartMeterActions, str]):
 
         try:
             write_api.write(config.INFLUX_BUCKET, config.INFLUX_ORG, point)
-        except ReadTimeoutError:
+        except (ReadTimeoutError, ConnectTimeoutError):
+            # TODO: retry
             print("Couldn't write datapoint to influx...")
 
         client.close()
