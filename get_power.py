@@ -43,6 +43,7 @@ while True:
                 db.write_to_influx(data)
         except ValueError:
             # Reconnect
+            print("Try to Reconnect...")
             ser = connect_to_serial_port()
             ipv6_address = b_route.connect_to_broute(ser)
 

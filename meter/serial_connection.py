@@ -29,4 +29,3 @@ def connect_to_serial_port() -> serial.Serial:
 
 def close_serial_connection(ser: serial.Serial):
     ser.close()
-    sys.exit()
